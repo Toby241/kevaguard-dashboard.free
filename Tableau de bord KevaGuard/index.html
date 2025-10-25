@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KevaGuard FP - Tableau de Bord</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    borderRadius: { 'xl': '0.75rem', '2xl': '1rem' },
+                    zIndex: { '60': '60', '70': '70', '80': '80' }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F9FAFB; color: #1F2937; transition: background-color 0.3s ease, color 0.3s ease; overflow-x: hidden; }
+        .dark body { background-color: #000000; color: #E5E7EB; }
+        .card-bg { background-color: #FFFFFF; border: 1px solid #E5E7EB; transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .dark .card-bg { background-color: #111827; border: 1px solid #374151; }
+        .sidebar-bg { background-color: #FFFFFF; border-right: 1px solid #E5E7EB; transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .dark .sidebar-bg { background-color: #111827; border-right: 1px solid #374151; }
+        .nav-active { background-color: #EFF6FF; color: #2563EB; font-weight: 600; }
+        .dark .nav-active { background-color: #1F2937; color: #F9FAFB; font-weight: 500; }
+        :root {
+            --color-primary-stroke: #3B82F6; --color-secondary-stroke: #22C55E;
+            --color-danger-stroke: #EF4444; --color-warning-stroke: #EAB308;
+            --color-grid-line: #E5E7EB;
+            --color-chart-gradient-start: rgba(59, 130, 246, 0.3);
+            --color-chart-gradient-end: rgba(59, 130, 246, 0);
+        }
+        .dark:root {
+            --color-grid-line: #374151;
+            --color-chart-gradient-start: rgba(59, 130, 246, 0.3);
+            --color-chart-gradient-end: rgba(59, 130, 246, 0);
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #F1F5F9; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4B5563; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748B; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #6B7280; }
+        input::placeholder { color: #6B7280; }
+        .dark input::placeholder { color: #9CA3AF; }
+        .form-label { display: block; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
+        .dark .form-label { color: #D1D5DB; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 0.5rem 0.75rem; background-color: #F9FAFB; border: 1px solid #D1D5DB; border-radius: 0.5rem; color: #111827; appearance: none; }
+        .dark .form-input, .dark .form-select, .dark .form-textarea { background-color: #1F2937; border-color: #4B5563; color: #F9FAFB; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: 2px solid transparent; outline-offset: 2px; --tw-ring-color: #3B82F6; border-color: var(--tw-ring-color); box-shadow: 0 0 0 2px var(--tw-ring-color); }
+        .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+        .dark .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); }
+        aside nav a { overflow: hidden; white-space: nowrap; }
+        aside nav a .sidebar-nav-text { transition: opacity 0.3s ease; }
+        #sidebar-logo-text { transition: opacity 0.3s ease; }
+        .progress-bar { background-color: #E5E7EB; }
+        .dark .progress-bar { background-color: #374151; }
+        .progress-bar-inner { background-color: #3B82F6; transition: width 0.5s ease-out; }
+        .material-symbols-outlined { vertical-align: middle; font-size: 1.25rem; line-height: 1; }
+        #page-container { position: relative; width: 100%; overflow: hidden; }
+        .page-section { width: 100%; display: none; }
+        #page-dashboard { display: block; }
+        #chart-tooltip { position: fixed; display: none; background-color: rgba(17, 24, 39, 0.9); color: white; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.75rem; z-index: 50; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #374151; }
+        .dark #chart-tooltip { background-color: rgba(249, 250, 251, 0.9); color: #1F2937; border: 1px solid #4B5563; }
+        #tooltip-date { font-weight: 600; margin-bottom: 0.25rem; color: #E5E7EB; }
+        .dark #tooltip-date { color: #374151; }
+        #tooltip-value { font-weight: 500; }
+    </style>
+</head>
+<body class="flex h-full">
+
+    <aside id="sidebar" class="fixed left-0 top-0 h-full sidebar-bg p-6 flex flex-col z-10 overflow-hidden" style="width: 15rem;">
+        <div class="flex items-center justify-between mb-10">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <span class="material-symbols-outlined text-blue-500 flex-shrink-0">grid_view</span>
+                <span id="sidebar-logo-text" class="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap">KevaGuard</span>
+            </div>
+            <button id="sidebar-toggle" class="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0">
+                <span id="sidebar-toggle-icon" class="material-symbols-outlined w-5 h-5">chevron_left</span>
+            </button>
+        </div>
+        <nav class="flex-grow">
+            <h3 class="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 sidebar-nav-text">Menu</h3>
+            <ul class="space-y-1">
+                <li><a href="#dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl nav-active"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">space_dashboard</span><span class="sidebar-nav-text">Tableau de Bord</span></a></li>
+                <li><a href="#concessions" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">map</span><span class="sidebar-nav-text">Concessions</span></a></li>
+                <li><a href="#inventaire" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">inventory_2</span><span class="sidebar-nav-text">Inventaire Forestier</span></a></li>
+                <li><a href="#coupes" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">article</span><span class="sidebar-nav-text">Registre des Coupes</span></a></li>
+                <li><a href="#transport" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">local_shipping</span><span class="sidebar-nav-text">Transport</span></a></li>
+                 <li><a href="#documents" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">gavel</span><span class="sidebar-nav-text">Documents Légaux</span></a></li>
+                 <li><a href="#statistiques" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">bar_chart</span><span class="sidebar-nav-text">Statistiques</span></a></li>
+            </ul>
+        </nav>
+        <div>
+            <h3 class="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 sidebar-nav-text">Assistance</h3>
+            <ul class="space-y-1">
+                <li><a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">help_outline</span><span class="sidebar-nav-text">Besoin d'aide ?</span></a></li>
+                <li><a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"><span class="material-symbols-outlined w-5 h-5 flex-shrink-0">chat_bubble_outline</span><span class="sidebar-nav-text">Contact</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main id="main-content" class="flex-1 overflow-y-auto h-full relative" style="margin-left: 15rem;">
+
+        <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 p-8 sticky top-0 z-30 bg-gray-50 dark:bg-black">
+            <div class="flex-1 flex flex-col md:flex-row md:items-center gap-6">
+                <div><h1 id="main-header-title" class="text-2xl font-bold text-gray-900 dark:text-white">Tableau de Bord</h1></div>
+                <div id="dashboard-nav-toggles" class="flex items-center bg-gray-100 dark:bg-[#1F2937] p-1 rounded-xl">
+                    <button data-target-page="dashboard" class="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg">Dashboard</button>
+                    <button data-target-page="suivie" class="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg">Suivi</button>
+                    <button data-target-page="transport" class="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg">Transport</button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="open-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-xl flex items-center gap-2 transition-colors"><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">add</span><span>Nouveau roulage</span></button>
+                <div class="relative"><span class="material-symbols-outlined w-4 h-4 text-gray-400 dark:text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" style="font-size: 1.125rem;">search</span><input type="text" placeholder="Rechercher..." class="bg-gray-100 dark:bg-[#1F2937] text-gray-900 dark:text-white text-sm rounded-xl pl-10 pr-4 py-2.5 w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                <button id="theme-toggle" class="p-2.5 rounded-xl bg-gray-100 dark:bg-[#1F2937] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span id="theme-toggle-icon" class="material-symbols-outlined w-5 h-5"></span></button>
+                <div class="relative">
+                    <button id="settings-menu-btn" class="p-2.5 rounded-xl bg-gray-100 dark:bg-[#1F2937] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span class="material-symbols-outlined w-5 h-5">settings</span></button>
+                    <div id="settings-menu" class="absolute top-full right-0 mt-2 w-64 card-bg rounded-xl shadow-2xl z-60 overflow-hidden hidden" style="opacity: 0; transform: translateY(-10px);">
+                        <div class="p-3 border-b border-gray-200 dark:border-gray-700"><p class="font-semibold text-sm text-gray-900 dark:text-white">KevaGuard Entreprise</p><p class="text-xs text-gray-500 dark:text-gray-400">admin.fp@kevaguard.com</p></div>
+                        <nav class="p-2">
+                            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">corporate_fare</span><span>Profil Entreprise</span></a>
+                            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">person_outline</span><span>Mon Compte</span></a>
+                        </nav>
+                        <div class="p-2 border-t border-gray-200 dark:border-gray-700"><a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 transition-colors"><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">logout</span><span>Se Déconnecter</span></a></div>
+                    </div>
+                </div>
+                <button class="p-2.5 rounded-xl bg-gray-100 dark:bg-[#1F2937] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative"><span class="material-symbols-outlined w-5 h-5">notifications</span><span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span></button>
+                <div class="flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-700">
+                    <img src="https://placehold.co/40x40/64748B/FFF?text=FP" alt="Avatar" class="w-10 h-10 rounded-full object-cover">
+                    <div><p class="font-medium text-sm text-gray-900 dark:text-white">Admin FP</p><p class="text-xs text-gray-500 dark:text-gray-400">admin.fp@kevaguard.com</p></div>
+                </div>
+            </div>
+        </header>
+        
+        <div id="page-container" class="relative p-8">
+
+            <section id="page-dashboard" data-page="dashboard" class="page-section">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 card-bg p-6 rounded-2xl relative overflow-hidden">
+                        <img src="Image-mode-clair" alt="[Imagem de Fundo claro abstrato]" class="absolute inset-0 w-full h-full object-cover opacity-20 z-0 block dark:hidden" onerror="this.style.display='none'">
+                        <img src="Image-mode-sombre" alt="[Imagem de Fundo escuro abstrato]" class="absolute inset-0 w-full h-full object-cover opacity-30 z-0 hidden dark:block" onerror="this.style.display='none'">
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-center mb-2"><span class="text-sm text-gray-700 dark:text-gray-200">Total de Grumes Cortadas</span><div id="kpi-main-filters" class="flex items-center gap-1 bg-gray-500/30 dark:bg-black/30 p-1 rounded-lg"><button data-period="day" class="text-xs px-2 py-0.5 rounded-md text-gray-900 dark:text-gray-300 hover:bg-white/20">Auj</button><button data-period="week" class="text-xs px-2 py-0.5 rounded-md text-gray-900 dark:text-gray-300 hover:bg-white/20">7J</button><button data-period="month" class="text-xs px-2 py-0.5 rounded-md bg-white/90 text-blue-700 font-medium shadow">30J</button><button data-period="half-year" class="text-xs px-2 py-0.5 rounded-md text-gray-900 dark:text-gray-300 hover:bg-white/20">6M</button><button data-period="year" class="text-xs px-2 py-0.5 rounded-md text-gray-900 dark:text-gray-300 hover:bg-white/20">1A</button></div></div>
+                            <p id="kpi-main-value" class="text-4xl font-bold text-gray-900 dark:text-white mb-1">...</p>
+                            <p id="kpi-main-percent" class="font-medium text-gray-500"></p>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 card-bg p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-semibold text-gray-900 dark:text-white">Aperçu Opérationnel</h3><a href="#" class="text-sm font-medium text-blue-500 hover:text-blue-400">Voir tout</a></div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
+                                <div class="flex items-center justify-between mb-2"><span class="text-sm font-medium text-gray-900 dark:text-white">Concessions</span><span class="material-symbols-outlined w-4 h-4 text-blue-500" style="font-size: 1.125rem;">map</span></div>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">12</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
+                                <div class="flex items-center justify-between mb-2"><span class="text-sm font-medium text-gray-900 dark:text-white">Bons (Auj.)</span><span class="material-symbols-outlined w-4 h-4 text-green-500" style="font-size: 1.125rem;">local_shipping</span></div>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">37</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
+                                <div class="flex items-center justify-between mb-2"><span class="text-sm font-medium text-gray-900 dark:text-white">Incidents (7J)</span><span class="material-symbols-outlined w-4 h-4 text-red-500" style="font-size: 1.125rem;">warning_amber</span></div>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">2</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
+                                <div class="flex items-center justify-between mb-2"><span class="text-sm font-medium text-gray-900 dark:text-white">Docs Requis</span><span class="material-symbols-outlined w-4 h-4 text-yellow-500" style="font-size: 1.125rem;">gavel</span></div>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">1</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="main-chart-container" class="lg:col-span-2 card-bg p-6 rounded-2xl relative">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-semibold text-gray-900 dark:text-white">Performance des Coupes (Volume m³)</h3><div id="main-chart-filters" class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg"><button data-period="day" class="text-xs px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Auj</button><button data-period="week" class="text-xs px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">7J</button><button data-period="month" class="text-xs px-3 py-1 rounded-md bg-blue-600 text-white font-medium">1M</button><button data-period="half-year" class="text-xs px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">6M</button><button data-period="year" class="text-xs px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">1A</button></div></div>
+                        <div class="w-full h-80 flex">
+                            <div class="h-full flex flex-col justify-between text-gray-500 dark:text-gray-400 pr-2 py-1" style="font-size: 10px;"><span>300</span><span>225</span><span>150</span><span>75</span><span class="opacity-0">0</span></div>
+                            <div class="flex-1 flex flex-col">
+                                <div id="main-chart-svg-wrapper" class="flex-grow w-full relative">
+                                    <svg class="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                                        <defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--color-chart-gradient-start)"/><stop offset="100%" stop-color="var(--color-chart-gradient-end)"/></linearGradient></defs>
+                                        <line x1="0" y1="0" x2="100" y2="0" stroke="var(--color-grid-line)" stroke-width="0.3"/>
+                                        <line x1="0" y1="13.3" x2="100" y2="13.3" stroke="var(--color-grid-line)" stroke-width="0.2"/>
+                                        <line x1="0" y1="26.6" x2="100" y2="26.6" stroke="var(--color-grid-line)" stroke-width="0.2"/>
+                                        <line x1="0" y1="40" x2="100" y2="40" stroke="var(--color-grid-line)" stroke-width="0.3"/>
+                                        <path id="main-chart-fill" d="M 0 40 V 40 H 100 V 40 Z" fill="url(#chartGradient)"/>
+                                        <path id="main-chart-line" d="M 0 40" stroke="var(--color-primary-stroke)" fill="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <div id="main-chart-labels-x" class="w-full pt-2 flex justify-between text-gray-500 dark:text-gray-400" style="font-size: 10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-1 card-bg p-6 rounded-2xl">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Top 5 Espécies (m³)</h3>
+                        <div class="flex flex-col items-center gap-4">
+                            <svg class="w-40 h-40" viewBox="0 0 36 36" transform="rotate(-90)"><circle cx="18" cy="18" r="15.91549430918953" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="3"></circle><circle cx="18" cy="18" r="15.91549430918953" fill="none" stroke-dasharray="40, 100" stroke-dashoffset="0" stroke-width="3" class="stroke-blue-500" stroke-linecap="round"></circle><circle cx="18" cy="18" r="15.91549430918953" fill="none" stroke-dasharray="25, 100" stroke-dashoffset="-40" stroke-width="3" class="stroke-emerald-500" stroke-linecap="round"></circle><circle cx="18" cy="18" r="15.91549430918953" fill="none" stroke-dasharray="15, 100" stroke-dashoffset="-65" stroke-width="3" class="stroke-yellow-500" stroke-linecap="round"></circle><circle cx="18" cy="18" r="15.91549430918953" fill="none" stroke-dasharray="12, 100" stroke-dashoffset="-80" stroke-width="3" class="stroke-red-500" stroke-linecap="round"></circle><circle cx="18" cy="18" r="15.91549430918953" fill="none" stroke-dasharray="8, 100" stroke-dashoffset="-92" stroke-width="3" class="stroke-purple-500" stroke-linecap="round"></circle></svg>
+                            <div class="w-full space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                                <div class="flex justify-between items-center"><span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span>Sapelli</span><span class="font-medium text-gray-800 dark:text-gray-200">1,928 m³</span></div>
+                                <div class="flex justify-between items-center"><span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span>Iroko</span><span class="font-medium text-gray-800 dark:text-gray-200">1,205 m³</span></div>
+                                <div class="flex justify-between items-center"><span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-500"></span>Tali</span><span class="font-medium text-gray-800 dark:text-gray-200">723 m³</span></div>
+                                <div class="flex justify-between items-center"><span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span>Padouk</span><span class="font-medium text-gray-800 dark:text-gray-200">578 m³</span></div>
+                                <div class="flex justify-between items-center"><span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500"></span>Frake</span><span class="font-medium text-gray-800 dark:text-gray-200">386 m³</span></div>
+                            </div>
+                            <div class="mt-5 text-center w-full"><a href="#especies" id="see-all-species" class="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"><span>Ver lista completa</span><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">arrow_forward</span></a></div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-3 card-bg p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-semibold text-gray-900 dark:text-white">Liste des Concessions</h3><div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg"><button class="text-xs px-3 py-1 rounded-md bg-blue-600 text-white font-medium">Toutes</button><button class="text-xs px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Actives</button><button class="text-xs px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">En Attente</button></div></div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left table-auto min-w-[700px]">
+                                <thead><tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase"><th class="py-3 px-4 font-medium">Concession / Parcelle</th><th class="py-3 px-4 font-medium">Série</th><th class="py-3 px-4 font-medium">AAC (m³)</th><th class="py-3 px-4 font-medium">Statut</th><th class="py-3 px-4 font-medium">Dernière Activité</th></tr></thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="py-4 px-4"><div class="font-medium text-gray-900 dark:text-white">Concession Zaïre</div><div class="text-xs text-gray-500 dark:text-gray-400">Parcelle B-12</div></td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Série 2024</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">120,000</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">Active</span></td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Coupe #C-4582 (il y a 2h)</td></tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="py-4 px-4"><div class="font-medium text-gray-900 dark:text-white">Concession Nord</div><div class="text-xs text-gray-500 dark:text-gray-400">Parcelle F-03</div></td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Série 2023</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">85,000</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">Active</span></td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Transport #T-981 (il y a 3h)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="page-suivie" data-page="suivie" class="page-section rounded-lg">
+                <div class="flex flex-col gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card-bg p-6 rounded-2xl"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Volume Exploité (AAC 2024)</span><p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">78,000 <span class="text-lg font-medium text-gray-600 dark:text-gray-300">m³</span></p></div>
+                        <div class="card-bg p-6 rounded-2xl"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Superficie Parcourue (AAC 2024)</span><p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">1,250 <span class="text-lg font-medium text-gray-600 dark:text-gray-300">ha</span></p></div>
+                        <div class="card-bg p-6 rounded-2xl"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Grumes Répertoriées (Total)</span><p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">15,820</p></div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 card-bg p-6 rounded-2xl">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Filtrer le Cahier de Chantier</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+                                <div><label for="suivi-concession" class="form-label">Concession (UFA)</label><select id="suivi-concession" class="form-select"><option>Toutes les concessions</option><option>UFA 1 (Zaïre)</option><option>UFA 2 (Nord)</option></select></div>
+                                <div><label for="suivi-aac" class="form-label">AAC (Série)</label><select id="suivi-aac" class="form-select"><option>Toutes les AAC</option><option>Série 2024</option><option>Série 2023</option></select></div>
+                                <div><label for="suivi-parcelle" class="form-label">Parcelle / Chantier</label><select id="suivi-parcelle" class="form-select"><option>Tous les chantiers</option><option>Chantier B-12</option><option>Chantier F-03</option></select></div>
+                                <div><label for="suivi-search" class="form-label">Rechercher ID Grume</label><div class="relative"><span class="material-symbols-outlined w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" style="font-size: 1.125rem;">search</span><input type="text" id="suivi-search" class="form-input pl-10" placeholder="Ex: #S40-A..."></div></div>
+                                <div class="md:col-span-2"><button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-xl transition-colors"><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">filter_list</span> Appliquer les Filtres</button></div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-1 card-bg p-6 rounded-2xl">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Quotas AAC</h3>
+                                <button id="open-aac-modal-btn" class="text-sm font-medium text-blue-500 hover:text-blue-400">Voir plus</button>
+                            </div>
+                             <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm font-medium mb-1"><span class="text-gray-800 dark:text-gray-200">AAC 2024 (Zaïre)</span><span class="text-gray-600 dark:text-gray-400">65%</span></div>
+                                    <div class="w-full progress-bar rounded-full h-2.5"><div class="progress-bar-inner h-2.5 rounded-full" style="width: 65%"></div></div>
+                                      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1"><span>78,000 / 120,000 m³</span></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm font-medium mb-1"><span class="text-gray-800 dark:text-gray-200">AAC 2023 (Nord)</span><span class="text-gray-600 dark:text-gray-400">90%</span></div>
+                                    <div class="w-full progress-bar rounded-full h-2.5"><div class="progress-bar-inner h-2.5 rounded-full" style="width: 90%"></div></div>
+                                      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1"><span>76,500 / 85,000 m³</span></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm font-medium mb-1"><span class="text-gray-800 dark:text-gray-200">AAC 2025 (Kivu)</span><span class="text-gray-600 dark:text-gray-400">0%</span></div>
+                                    <div class="w-full progress-bar rounded-full h-2.5"><div class="progress-bar-inner h-2.5 rounded-full" style="width: 0%"></div></div>
+                                      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1"><span>0 / 250,000 m³</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-bg p-6 rounded-2xl">
+                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Cahier de Chantier (Résultats)</h3>
+                         <div class="overflow-x-auto">
+                            <table class="w-full text-left table-auto min-w-[900px]">
+                                <thead><tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase"><th class="py-3 px-4 font-medium">ID Grume</th><th class="py-3 px-4 font-medium">Essence</th><th class="py-3 px-4 font-medium">Volume (m³)</th><th class="py-3 px-4 font-medium">Coordonnées (GPS)</th><th class="py-3 px-4 font-medium">Chantier</th><th class="py-3 px-4 font-medium">Statut</th></tr></thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#S40-A</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Sapelli</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">3.20</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">4.123, 9.456</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Chantier B-12</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">Abattu</span></td></tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#S40-B</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Sapelli</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">3.50</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">4.124, 9.457</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Chantier B-12</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 text-xs font-medium rounded-full">Débardé</span></td></tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#I22-C</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Iroko</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">4.10</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">5.001, 10.112</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Chantier F-03</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-full">En Parc</span></td></tr>
+                                </tbody>
+                            </table>
+                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-concessions" data-page="concessions" class="page-section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Concessions</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Visualisation des parcelles forestières.</p>
+                </div>
+                <div class="card-bg rounded-2xl p-2 h-[75vh]">
+                    <div class="w-full h-full rounded-xl flex items-center justify-center text-gray-400 dark:text-gray-600 text-2xl font-medium"
+                         style="background-image: repeating-linear-gradient(var(--color-grid-line) 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, var(--color-grid-line) 0 1px, transparent 1px 100%); background-size: 3rem 3rem;">
+                        [Placeholder para a Carte Interactive]
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-inventaire" data-page="inventaire" class="page-section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Inventaire Forestier</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Liste de tous les troncs inventoriés sur le terrain.</p>
+                </div>
+                <div class="card-bg p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Troncs Inventoriés (1,280)</h3>
+                        <div class="flex items-center gap-2">
+                            <button class="flex items-center gap-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-lg font-medium">
+                                <span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">filter_list</span>
+                                Filtrer
+                            </button>
+                            <button class="flex items-center gap-2 text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium">
+                                <span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">add</span>
+                                Ajouter
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-auto min-w-[900px]">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase">
+                                    <th class="py-3 px-4 font-medium">ID Tronc</th>
+                                    <th class="py-3 px-4 font-medium">Espèce</th>
+                                    <th class="py-3 px-4 font-medium">Volume (m³)</th>
+                                    <th class="py-3 px-4 font-medium">Coordonnées (GPS)</th>
+                                    <th class="py-3 px-4 font-medium">Parcelle</th>
+                                    <th class="py-3 px-4 font-medium">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#S40-A</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Sapelli</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">3.20</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">4.123, 9.456</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Parcelle B-12</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">Inventorié</span></td></tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#S40-B</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Sapelli</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">3.50</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">4.124, 9.457</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Parcelle B-12</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">Inventorié</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-coupes" data-page="coupes" class="page-section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Registre des Coupes</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Historique des troncs abattus et enregistrés.</p>
+                </div>
+                <div class="card-bg p-6 rounded-2xl">
+                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Troncs Coupés (4,820)</h3>
+                        <div class="flex items-center gap-2">
+                            <button class="flex items-center gap-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-lg font-medium">
+                                <span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">filter_list</span>
+                                Filtrer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-auto min-w-[900px]">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase">
+                                    <th class="py-3 px-4 font-medium">ID Tronc</th>
+                                    <th class="py-3 px-4 font-medium">Espèce</th>
+                                    <th class="py-3 px-4 font-medium">Volume (m³)</th>
+                                    <th class="py-3 px-4 font-medium">Date de Coupe</th>
+                                    <th class="py-3 px-4 font-medium">ID Bon de Coupe</th>
+                                    <th class="py-3 px-4 font-medium">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#C-4582</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Sapelli</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">3.15</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">24/10/2025, 10:30</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">BC-ZAI-001</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">Coupé</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+             <section id="page-transport" data-page="transport" class="page-section rounded-lg">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Suivi de Transport</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Liste de tous les bons de roulage émis.</p>
+                </div>
+                <div class="card-bg p-6 rounded-2xl">
+                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Bons de Roulage (152)</h3>
+                        <div class="flex items-center gap-2">
+                            <button class="flex items-center gap-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-lg font-medium">
+                                <span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">filter_list</span>
+                                Filtrer par Statut
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-auto min-w-[1000px]">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase">
+                                    <th class="py-3 px-4 font-medium">ID Bon</th>
+                                    <th class="py-3 px-4 font-medium">Date Émission</th>
+                                    <th class="py-3 px-4 font-medium">Transporteur</th>
+                                    <th class="py-3 px-4 font-medium">Plaque</th>
+                                    <th class="py-3 px-4 font-medium">Volume (m³)</th>
+                                    <th class="py-3 px-4 font-medium">Destination</th>
+                                    <th class="py-3 px-4 font-medium">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">#KVA-ZAI-004583</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">24/10/2025, 12:05</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Transports Keba</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">RA-1234-B</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">7.20</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">Scierie, Kribi</td><td class="py-4 px-4"><span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">En Transit</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+              <section id="page-documents" data-page="documents" class="page-section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Documents Légaux</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Gérer vos permis de coupe, certifications et autres documents officiels.</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 card-bg p-6 rounded-2xl">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Ajouter un nouveau document</h3>
+                        <form action="#" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div><label for="doc-nom" class="form-label">Nom du Document</label><input type="text" id="doc-nom" class="form-input" placeholder="Ex: Permis de Coupe 2025"></div>
+                                <div><label for="doc-type" class="form-label">Type de Document</label><select id="doc-type" class="form-select"><option>Permis de Coupe</option><option>Certification FSC</option><option>Rapport d'Inspection</option><option>Autorisation de Transport</option><option>Autre</option></select></div>
+                            </div>
+                            <div>
+                                <label class="form-label">Fichier (PDF, JPG, PNG)</label>
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg">
+                                    <div class="space-y-1 text-center">
+                                        <span class="material-symbols-outlined mx-auto h-12 w-12 text-gray-400" style="font-size: 3rem;">cloud_upload</span>
+                                        <div class="flex text-sm text-gray-600 dark:text-gray-400">
+                                            <label for="file-upload" class="relative cursor-pointer bg-white dark:bg-gray-900 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-900 focus-within:ring-blue-500">
+                                                <span>Uploader un fichier</span>
+                                                <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                                            </label>
+                                            <p class="pl-1">ou glissez-déposez</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-500">PDF, PNG, JPG jusqu'à 10MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right"><button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-xl transition-colors">Sauvegarder</button></div>
+                        </form>
+                    </div>
+                    <div class="lg:col-span-1 card-bg p-6 rounded-2xl h-fit">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Documents Récents</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"><span class="font-medium text-sm text-gray-800 dark:text-gray-200">Permis Zaïre 2024.pdf</span><span class="material-symbols-outlined w-4 h-4 text-gray-500 cursor-pointer" style="font-size: 1.125rem;">download</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+              <section id="page-statistiques" data-page="statistiques" class="page-section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Statistiques & Rapports</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Posez vos questions pour générer des rapports à la demande.</p>
+                </div>
+                <div class="card-bg rounded-2xl flex flex-col h-[75vh]">
+                    <div id="chat-window" class="flex-grow p-6 space-y-4 overflow-y-auto">
+                        <div class="flex justify-start">
+                            <div class="card-bg p-4 rounded-xl max-w-lg shadow">
+                                <p class="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">KevaGuard Assistant</p>
+                                <p class="text-sm text-gray-800 dark:text-gray-200">Bonjour! Que puis-je générer pour vous aujourd'hui ? Demandez-moi un rapport, un export Excel ou un PDF.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <form id="chat-form" class="flex items-center gap-3">
+                            <input type="text" id="chat-input" placeholder="Demandez un rapport excel des coupes de Sapelli..." class="form-input flex-1 !py-3" autocomplete="off">
+                            <button type="submit" class="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors">
+                                <span class="material-symbols-outlined w-5 h-5">send</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+             <section id="page-especies" data-page="especies" class="page-section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Lista Completa de Essências</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1">Liste de toutes les essences exploitées, triées par volume.</p>
+                </div>
+                <div class="card-bg p-6 rounded-2xl">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-wrap items-center gap-4 w-full">
+                            <div class="flex-1 min-w-[200px]"><label for="filter-aac" class="form-label text-xs">Filtrer par AAC</label><select id="filter-aac" class="form-select !py-2"><option>Toutes les AAC</option><option>AAC 2024 (Concession Zaïre)</option><option>AAC 2023 (Concession Nord)</option><option>AAC 2025 (Projet Kivu)</option></select></div>
+                        </div>
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-xl transition-colors w-full md:w-auto flex-shrink-0">Appliquer</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-auto min-w-[900px]">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase">
+                                    <th class="py-3 px-4 font-medium">Rang</th>
+                                    <th class="py-3 px-4 font-medium">Essence</th>
+                                    <th class="py-3 px-4 font-medium">Volume Total (m³)</th>
+                                    <th class="py-3 px-4 font-medium">Nombre de Troncs</th>
+                                    <th class="py-3 px-4 font-medium">AAC Principale</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">1</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold">Sapelli</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">1,928.50</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">580</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">AAC 2024 (Zaïre)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        
+        </div> <div id="toast-notification" class="fixed top-28 right-8 card-bg p-4 rounded-xl shadow-lg z-70 flex items-center gap-3 hidden transition-all duration-300 ease-out translate-x-full">
+            <span class="material-symbols-outlined w-5 h-5 text-green-500">check_circle</span>
+            <span id="toast-message" class="text-sm font-medium text-gray-900 dark:text-white">Action réussie !</span>
+            <button id="toast-close" class="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><span class="material-symbols-outlined w-4 h-4" style="font-size: 1.125rem;">close</span></button>
+        </div>
+    </main>
+    
+    <div id="chart-tooltip"><div id="tooltip-date"></div><div id="tooltip-value"></div></div>
+    
+    <div id="roulage-modal-backdrop" class="fixed inset-0 bg-black/70 z-40 hidden" aria-hidden="true"></div>
+    <div id="roulage-modal" class="fixed inset-0 z-50 p-0 hidden">
+        <div class="card-bg w-full h-full rounded-none shadow-none max-h-none flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700"><h2 class="text-xl font-semibold text-gray-900 dark:text-white">Créer un nouveau Bon de Roulage</h2><button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><span class="material-symbols-outlined w-6 h-6">close</span></button></div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div id="form-step-1">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Étape 1: Sélectionner les Grumes</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Cochez les grumes à inclure dans ce bon. La liste ci-dessous doit être chargée depuis le backend.</p>
+                    <div id="log-selection-list" class="max-h-[40vh] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                        <label class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"><input type="checkbox" class="h-4 w-4 rounded text-blue-600" data-volume="3.2"><span class="ml-3 text-sm font-medium text-gray-800 dark:text-gray-200">Grumes #S40-A (Sapelli, 3.2m³, Parcelle B-12)</span></label>
+                        <label class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"><input type="checkbox" class="h-4 w-4 rounded text-blue-600" data-volume="3.5"><span class="ml-3 text-sm font-medium text-gray-800 dark:text-gray-200">Grumes #S40-B (Sapelli, 3.5m³, Parcelle B-12)</span></label>
+                        <label class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"><input type="checkbox" class="h-4 w-4 rounded text-blue-600" data-volume="4.1"><span class="ml-3 text-sm font-medium text-gray-800 dark:text-gray-200">Grumes #I22-C (Iroko, 4.1m³, Parcelle F-03)</span></label>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <button id="form-step-1-next" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-xl transition-colors">
+                            Continuer
+                        </button>
+                    </div>
+                </div>
+                <div id="form-step-2" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Étape 2: Remplir les Détails</h3>
+                    <form id="roulage-form" action="#" class="space-y-6">
+                        <fieldset class="border border-gray-200 dark:border-gray-700 rounded-xl p-4"><legend class="text-base font-medium text-gray-900 dark:text-white px-2">Informations sur le Document</legend><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"><div><label for="bon-numero" class="form-label">Numéro du bon de roulage</label><input type="text" id="bon-numero" class="form-input bg-gray-100 dark:bg-gray-800" value="Généré automatiquement" readonly></div><div><label for="bon-autorite" class="form-label">Autorité emissora</label><input type="text" id="bon-autorite" class="form-input" value="DGF – Direction Générale des Forêts"></div><div><label for="bon-emission" class="form-label">Date d'émission</label><input type="date" id="bon-emission" class="form-input"></div><div><label for="bon-validade" class="form-label">Date de validité</label><input type="date" id="bon-validade" class="form-input"></div></div></fieldset>
+                        <fieldset class="border border-gray-200 dark:border-gray-700 rounded-xl p-4"><legend class="text-base font-medium text-gray-900 dark:text-white px-2">Informations techniques sur la charge</legend><div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2"><div><label for="charge-troncs" class="form-label">Nombre total de troncs</label><input type="number" id="charge-troncs" class="form-input bg-gray-100 dark:bg-gray-800" value="0" readonly></div><div><label for="charge-volume" class="form-label">Volume total (m³)</label><input type="number" id="charge-volume" step="0.01" class="form-input bg-gray-100 dark:bg-gray-800" value="0.0" readonly></div><div><label for="charge-type" class="form-label">Type de transporte</label><select id="charge-type" class="form-select"><option>Route</option><option>Rail</option><option>Fluvial</option></select></div></div></fieldset>
+                        <fieldset class="border border-gray-200 dark:border-gray-700 rounded-xl p-4"><legend class="text-base font-medium text-gray-900 dark:text-white px-2">Informations sur le Transport</legend><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"><div><label for="transport-nom" class="form-label">Nom du transporteur</label><input type="text" id="transport-nom" class="form-input" placeholder="Ex: Transports Keba"></div><div><label for="transport-plaque" class="form-label">Numéro d’immatriculation</label><input type="text" id="transport-plaque" class="form-input" placeholder="Ex: RA-1234-B"></div><div class="md:col-span-2"><label for="transport-chauffeur" class="form-label">Nom du chauffeur</label><input type="text" id="transport-chauffeur" class="form-input" placeholder="Ex: Jean Dupont"></div></div></fieldset>
+                        <fieldset class="border border-gray-200 dark:border-gray-700 rounded-xl p-4"><legend class="text-base font-medium text-gray-900 dark:text-white px-2">Informations sur la destination</legend><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"><div><label for="dest-nom" class="form-label">Nom du destinataire</label><input type="text" id="dest-nom" class="form-input" placeholder="Scierie, port, usine..."></div><div><label for="dest-location" class="form-label">Localisation du site de réception</label><input type="text" id="dest-location" class="form-input" placeholder="Ex: Zone Industrielle, Kribi"></div></div></fieldset>
+                        <div class="mt-6 flex justify-between"><button type="button" id="form-step-2-prev" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-5 rounded-xl transition-colors">Précédent</button><button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-xl transition-colors">Créer le Bon</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="aac-modal-backdrop" class="fixed inset-0 bg-black/70 z-60 hidden opacity-0 transition-opacity duration-300" aria-hidden="true"></div>
+    <div id="aac-modal" class="fixed inset-0 z-70 flex items-center justify-center p-4 hidden opacity-0 scale-95 transition-all duration-300">
+        <div class="card-bg rounded-2xl shadow-xl w-full max-w-4xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"><h2 class="text-xl font-semibold text-gray-900 dark:text-white">Liste Complète des Quotas AAC</h2><button id="close-aac-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><span class="material-symbols-outlined w-6 h-6">close</span></button></div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left table-auto min-w-[700px]">
+                        <thead><tr class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase"><th class="py-3 px-4 font-medium">AAC (Série)</th><th class="py-3 px-4 font-medium">Concession (UFA)</th><th class="py-3 px-4 font-medium">Volume Exploité (m³)</th><th class="py-3 px-4 font-medium">Volume Total (m³)</th><th class="py-3 px-4 font-medium">Progression</th></tr></thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">Série 2024</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">UFA 1 (Zaïre)</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">78,000</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">120,000</td><td class="py-4 px-4"><div class="w-full progress-bar rounded-full h-2 my-1"><div class="progress-bar-inner h-2 rounded-full" style="width: 65%"></div></div><span class="text-xs text-gray-500 dark:text-gray-400">65%</span></td></tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">Série 2023</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">UFA 2 (Nord)</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">76,500</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">85,000</td><td class="py-4 px-4"><div class="w-full progress-bar rounded-full h-2 my-1"><div class="progress-bar-inner h-2 rounded-full" style="width: 90%"></div></div><span class="text-xs text-gray-500 dark:text-gray-400">90%</span></td></tr>
+                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">Série 2025</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">UFA 3 (Kivu)</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">0</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">250,000</td><td class="py-4 px-4"><div class="w-full progress-bar rounded-full h-2 my-1"><div class="progress-bar-inner h-2 rounded-full" style="width: 0%"></div></div><span class="text-xs text-gray-500 dark:text-gray-400">0%</span></td></tr>
+                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 text-sm"><td class="py-4 px-4 font-medium text-gray-900 dark:text-white">Série 2022</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">UFA 1 (Zaïre)</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">110,000</td><td class="py-4 px-4 text-gray-700 dark:text-gray-300">110,000</td><td class="py-4 px-4"><div class="w-full progress-bar rounded-full h-2 my-1"><div class="progress-bar-inner h-2 rounded-full bg-green-500" style="width: 100%"></div></div><span class="text-xs text-green-600 dark:text-green-400">100% (Terminé)</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 text-right"><button id="close-aac-modal-btn-footer" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors">Fermer</button></div>
+        </div>
+    </div>
+
+    <script src="dashboard.js" defer></script>
+
+</body>
+</html>
